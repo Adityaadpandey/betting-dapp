@@ -1,79 +1,177 @@
 'use client'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Menu, X } from 'lucide-react'
-import { ThemeSelect } from '@/components/theme-select'
-import { ClusterUiSelect } from './cluster/cluster-ui'
+
 import { WalletButton } from '@/components/solana/solana-provider'
+import { Separator } from '@/components/ui/separator'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar'
+import { useConnection } from '@solana/wallet-adapter-react'
+import { Circle, Dice6, Globe, Home, Settings, TrendingUp, Trophy, Wallet, Zap } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useCluster } from './cluster/cluster-data-access'
+import { ClusterUiSelect } from './cluster/cluster-ui'
 
-export function AppHeader({ links = [] }: { links: { label: string; path: string }[] }) {
+// Enhanced icon mapping for routes
+const getRouteIcon = (path: string, label: string) => {
+  const lowerLabel = label.toLowerCase()
+  if (path === '/' || lowerLabel.includes('home')) return <Home className="size-4" />
+  if (lowerLabel.includes('bet') || lowerLabel.includes('game')) return <Dice6 className="size-4" />
+  if (lowerLabel.includes('market') || lowerLabel.includes('trade')) return <TrendingUp className="size-4" />
+  if (lowerLabel.includes('leaderboard') || lowerLabel.includes('winner')) return <Trophy className="size-4" />
+  if (lowerLabel.includes('setting')) return <Settings className="size-4" />
+  return <Circle className="size-4" />
+}
+
+export function AppSidebar({ links = [] }: { links: { label: string; path: string }[] }) {
   const pathname = usePathname()
-  const [showMenu, setShowMenu] = useState(false)
+  const { cluster } = useCluster()
+  const { connection } = useConnection()
 
-  function isActive(path: string) {
-    return path === '/' ? pathname === '/' : pathname.startsWith(path)
-  }
+  const isActive = (path: string) => (path === '/' ? pathname === '/' : pathname.startsWith(path))
 
   return (
-    <header className="relative z-50 px-4 py-2 bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-400">
-      <div className="mx-auto flex justify-between items-center">
-        <div className="flex items-baseline gap-4">
-          <Link className="text-xl hover:text-neutral-500 dark:hover:text-white" href="/">
-            <span>Bettingdapp</span>
-          </Link>
-          <div className="hidden md:flex items-center">
-            <ul className="flex gap-4 flex-nowrap items-center">
-              {links.map(({ label, path }) => (
-                <li key={path}>
-                  <Link
-                    className={`hover:text-neutral-500 dark:hover:text-white ${isActive(path) ? 'text-neutral-500 dark:text-white' : ''}`}
-                    href={path}
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+    <Sidebar className="border-r border-border/50 bg-gradient-to-b from-background/95 to-muted/30 backdrop-blur-sm">
+      {/* Enhanced Header */}
+      <SidebarHeader className="p-6 border-b border-border/30">
+        <Link href="/" className="group flex items-center gap-4 hover:opacity-90 transition-all duration-300">
+          <div className="relative">
+            <div className="flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+              <Dice6 className="size-6" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full animate-pulse" />
           </div>
-        </div>
+          <div>
+            <h2 className="font-bold text-xl bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+              BettingDApp
+            </h2>
+            <p className="text-sm text-muted-foreground font-medium">Premium Platform</p>
+          </div>
+        </Link>
+      </SidebarHeader>
 
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setShowMenu(!showMenu)}>
-          {showMenu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
-
-        <div className="hidden md:flex items-center gap-4">
-          <WalletButton />
-          <ClusterUiSelect />
-          <ThemeSelect />
-        </div>
-
-        {showMenu && (
-          <div className="md:hidden fixed inset-x-0 top-[52px] bottom-0 bg-neutral-100/95 dark:bg-neutral-900/95 backdrop-blur-sm">
-            <div className="flex flex-col p-4 gap-4 border-t dark:border-neutral-800">
-              <ul className="flex flex-col gap-4">
+      <SidebarContent className="px-4 py-2">
+        {/* Enhanced Navigation */}
+        {links.length > 0 && (
+          <SidebarGroup className="py-4">
+            <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider mb-3 px-2">
+              Navigation
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-2">
                 {links.map(({ label, path }) => (
-                  <li key={path}>
-                    <Link
-                      className={`hover:text-neutral-500 dark:hover:text-white block text-lg py-2  ${isActive(path) ? 'text-neutral-500 dark:text-white' : ''} `}
-                      href={path}
-                      onClick={() => setShowMenu(false)}
+                  <SidebarMenuItem key={path}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(path)}
+                      className={`
+                        w-full justify-start rounded-lg px-3 py-2.5 transition-all duration-200 group
+                        ${
+                          isActive(path)
+                            ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary border-l-4 border-primary shadow-sm'
+                            : 'hover:bg-muted/50 hover:text-foreground hover:shadow-sm hover:translate-x-1'
+                        }
+                      `}
                     >
-                      {label}
-                    </Link>
-                  </li>
+                      <Link href={path} className="flex items-center gap-3 w-full">
+                        <div
+                          className={`
+                          flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200
+                          ${
+                            isActive(path)
+                              ? 'bg-primary/20 text-primary'
+                              : 'text-muted-foreground group-hover:bg-muted group-hover:text-foreground'
+                          }
+                        `}
+                        >
+                          {getRouteIcon(path, label)}
+                        </div>
+                        <span className="truncate font-medium">{label}</span>
+                        {isActive(path) && (
+                          <div className="ml-auto">
+                            <Zap className="size-3 text-primary" />
+                          </div>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 ))}
-              </ul>
-              <div className="flex flex-col gap-4">
-                <WalletButton />
-                <ClusterUiSelect />
-                <ThemeSelect />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        <Separator className="my-6 bg-border/50" />
+
+        {/* Enhanced Network Status */}
+        {/* <SidebarGroup className="py-4">
+          <SidebarGroupContent>
+            <Card className="p-4 bg-gradient-to-br from-muted/30 to-muted/50 border-border/50 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-foreground">Connected</span>
+                </div>
+                <Badge variant="outline" className="text-xs font-medium bg-primary/10 text-primary border-primary/30">
+                  {cluster.name}
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Globe className="size-3" />
+                  <span className="truncate font-mono">{connection.rpcEndpoint}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Zap className="size-3" />
+                  <span>Low Latency</span>
+                </div>
+              </div>
+            </Card>
+          </SidebarGroupContent>
+        </SidebarGroup> */}
+      </SidebarContent>
+
+      {/* Enhanced Footer */}
+      <SidebarFooter className="p-6 border-t border-border/30 bg-gradient-to-b from-transparent to-muted/20">
+        <SidebarGroup>
+          <SidebarGroupContent className="space-y-4">
+            {/* Enhanced Wallet Section */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-muted/30 to-muted/50 border border-border/30">
+                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/20 text-primary">
+                  <Wallet className="size-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <WalletButton className="w-full justify-start text-sm font-medium bg-transparent border-none shadow-none hover:bg-primary/10 hover:text-primary transition-all duration-200" />
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </header>
+
+            {/* Enhanced Controls - Balanced Layout */}
+            <div className="space-y-3">
+              {/* Network Control */}
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-muted/30 to-muted/50 border border-border/30">
+                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-blue-500/20 text-blue-500">
+                  <Globe className="size-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <ClusterUiSelect />
+                </div>
+              </div>
+            </div>
+
+            {/* Elegant Separator */}
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarFooter>
+    </Sidebar>
   )
 }

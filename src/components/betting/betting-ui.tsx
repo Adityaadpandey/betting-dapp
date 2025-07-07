@@ -10,11 +10,10 @@ import { CalendarIcon, CheckCircleIcon, TrophyIcon, XCircleIcon } from 'lucide-r
 import { useMemo, useState } from 'react'
 import { ExplorerLink } from '../cluster/cluster-ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { useBettingProgram, useBettingProgramAccount } from './counter-data-access'
+import { useBettingProgram, useBettingProgramAccount } from './betting-data-access'
 
 export function BettingCreate() {
   const { createBet } = useBettingProgram()
-  const [betId, setBetId] = useState('')
   const [description, setDescription] = useState('')
   const [optionA, setOptionA] = useState('')
   const [optionB, setOptionB] = useState('')
@@ -22,14 +21,13 @@ export function BettingCreate() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!betId || !description || !optionA || !optionB || !endTime) {
+    if (!description || !optionA || !optionB || !endTime) {
       return
     }
 
     const endTimeTimestamp = new Date(endTime).getTime() / 1000
 
     await createBet.mutateAsync({
-      betId,
       description,
       optionA,
       optionB,
@@ -37,7 +35,6 @@ export function BettingCreate() {
     })
 
     // Reset form
-    setBetId('')
     setDescription('')
     setOptionA('')
     setOptionB('')
@@ -53,16 +50,6 @@ export function BettingCreate() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="betId">Bet ID</Label>
-              <Input
-                id="betId"
-                value={betId}
-                onChange={(e) => setBetId(e.target.value)}
-                placeholder="unique-bet-id"
-                required
-              />
-            </div>
             <div>
               <Label htmlFor="endTime">End Time</Label>
               <Input
@@ -159,7 +146,7 @@ export function BettingList() {
   )
 }
 
-function BettingCard({ bet }: { bet: any }) {
+export function BettingCard({ bet }: { bet: any }) {
   const betData = bet.account
   const betId = betData.betId
   const { betQuery, userBetQuery, placeBetMutation, resolveBetMutation, claimWinningsMutation, cancelBetMutation } =

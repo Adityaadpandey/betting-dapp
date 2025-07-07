@@ -3,13 +3,12 @@
 import { useConnection } from '@solana/wallet-adapter-react'
 
 import { useQuery } from '@tanstack/react-query'
-import * as React from 'react'
 import { ReactNode } from 'react'
 
-import { useCluster } from './cluster-data-access'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
 import { AppAlert } from '@/components/app-alert'
+import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useCluster } from './cluster-data-access'
 
 export function ExplorerLink({ path, label, className }: { path: string; label: string; className?: string }) {
   const { getExplorerUrl } = useCluster()
@@ -58,11 +57,13 @@ export function ClusterUiSelect() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">{cluster.name}</Button>
+        <Button variant="outline" className="w-full justify-center text-center">
+          {cluster.name}
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="center" className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)]">
         {clusters.map((item) => (
-          <DropdownMenuItem key={item.name} onClick={() => setCluster(item)}>
+          <DropdownMenuItem key={item.name} onClick={() => setCluster(item)} className="justify-center text-center">
             {item.name}
           </DropdownMenuItem>
         ))}

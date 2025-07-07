@@ -37,18 +37,17 @@ export function useBettingProgram() {
   const createBet = useMutation({
     mutationKey: ['betting', 'create-bet', { cluster }],
     mutationFn: async ({
-      betId,
       description,
       optionA,
       optionB,
       endTime,
     }: {
-      betId: string
       description: string
       optionA: string
       optionB: string
       endTime: number
     }) => {
+      const betId = Buffer.from(description).toString('base64').slice(0, 32) // Generate a unique bet ID from description
       const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), Buffer.from(betId)], programId)
 
       return program.methods

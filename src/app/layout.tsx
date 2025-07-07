@@ -1,8 +1,8 @@
-import type { Metadata } from 'next'
-import './globals.css'
-import { AppProviders } from '@/components/app-providers'
 import { AppLayout } from '@/components/app-layout'
+import { AppProviders } from '@/components/app-providers'
+import type { Metadata } from 'next'
 import React from 'react'
+import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Bettingdapp',
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 const links: { label: string; path: string }[] = [
   // More links...
   { label: 'Home', path: '/' },
-  { label: 'Account', path: '/account' },
-  { label: 'Counter Program', path: '/counter' },
+  { label: 'Create Bet', path: '/create-bet' },
+  { label: 'My Bet', path: '/my-bet' },
 ]
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
