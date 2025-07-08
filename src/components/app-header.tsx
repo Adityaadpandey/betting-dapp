@@ -1,7 +1,6 @@
 'use client'
 
 import { WalletButton } from '@/components/solana/solana-provider'
-import { Separator } from '@/components/ui/separator'
 import {
   Sidebar,
   SidebarContent,
@@ -110,7 +109,7 @@ export function AppSidebar({ links = [] }: { links: { label: string; path: strin
           </SidebarGroup>
         )}
 
-        <Separator className="my-6 bg-border/50" />
+        {/* <Separator className="my-6 bg-border/50" /> */}
 
         {/* Enhanced Network Status */}
         {/* <SidebarGroup className="py-4">
@@ -140,7 +139,7 @@ export function AppSidebar({ links = [] }: { links: { label: string; path: strin
       </SidebarContent>
 
       {/* Enhanced Footer */}
-      <SidebarFooter className="p-6 border-t border-border/30 bg-gradient-to-b from-transparent to-muted/20">
+      <SidebarFooter className="p-6 border-t border-border/30 bg-gradient-to-b from-transparent to-muted/20 mb-10">
         <SidebarGroup>
           <SidebarGroupContent className="space-y-4">
             {/* Enhanced Wallet Section */}
