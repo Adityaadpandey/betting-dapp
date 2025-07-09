@@ -58,6 +58,133 @@
       ]
     },
     {
+      "name": "claim_maker_fees",
+      "discriminator": [
+        102,
+        69,
+        89,
+        31,
+        119,
+        199,
+        231,
+        77
+      ],
+      "accounts": [
+        {
+          "name": "bet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "bet_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "_bet_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "claim_platform_fees",
+      "discriminator": [
+        159,
+        129,
+        37,
+        35,
+        170,
+        99,
+        163,
+        16
+      ],
+      "accounts": [
+        {
+          "name": "bet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "bet_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "platform_owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "_bet_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "claim_winnings",
       "discriminator": [
         161,
@@ -199,6 +326,125 @@
         {
           "name": "end_time",
           "type": "i64"
+        },
+        {
+          "name": "min_bet_amount",
+          "type": "u64"
+        },
+        {
+          "name": "max_bet_amount",
+          "type": "u64"
+        },
+        {
+          "name": "category",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "get_bet_stats",
+      "discriminator": [
+        4,
+        186,
+        166,
+        115,
+        85,
+        76,
+        95,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "bet",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "bet_id"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "_bet_id",
+          "type": "string"
+        }
+      ],
+      "returns": {
+        "defined": {
+          "name": "BetStats"
+        }
+      }
+    },
+    {
+      "name": "initialize_platform",
+      "discriminator": [
+        119,
+        201,
+        101,
+        45,
+        75,
+        122,
+        89,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "platform_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "maker_fee_bps",
+          "type": "u16"
         }
       ]
     },
@@ -268,6 +514,33 @@
           "name": "user",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "system_program",
@@ -340,6 +613,10 @@
         {
           "name": "winning_option",
           "type": "u8"
+        },
+        {
+          "name": "result_details",
+          "type": "string"
         }
       ]
     }
@@ -356,6 +633,19 @@
         157,
         101,
         185
+      ]
+    },
+    {
+      "name": "PlatformConfig",
+      "discriminator": [
+        160,
+        78,
+        128,
+        0,
+        248,
+        83,
+        230,
+        160
       ]
     },
     {
@@ -422,6 +712,46 @@
       "code": 6009,
       "name": "BetsAlreadyPlaced",
       "msg": "Bets have already been placed"
+    },
+    {
+      "code": 6010,
+      "name": "FeeTooHigh",
+      "msg": "Fee rate too high (max 10%)"
+    },
+    {
+      "code": 6011,
+      "name": "BetTooLow",
+      "msg": "Bet amount too low"
+    },
+    {
+      "code": 6012,
+      "name": "BetTooHigh",
+      "msg": "Bet amount too high"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidEndTime",
+      "msg": "Invlaid end time"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidCategory",
+      "msg": "Invalid category"
+    },
+    {
+      "code": 6015,
+      "name": "NoFeesToClaim",
+      "msg": "No fees to claim"
+    },
+    {
+      "code": 6016,
+      "name": "UnauthorizedPlatformOwner",
+      "msg": "Unauthorized Platform Owner"
+    },
+    {
+      "code": 6017,
+      "name": "NoWinnersFound",
+      "msg": "No Winners found"
     }
   ],
   "types": [
@@ -473,6 +803,102 @@
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "min_bet_amount",
+            "type": "u64"
+          },
+          {
+            "name": "max_bet_amount",
+            "type": "u64"
+          },
+          {
+            "name": "category",
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "resolved_at",
+            "type": "i64"
+          },
+          {
+            "name": "total_bettors",
+            "type": "u64"
+          },
+          {
+            "name": "maker_fee_collected",
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee_collected",
+            "type": "u64"
+          },
+          {
+            "name": "result_details",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BetStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "total_pool",
+            "type": "u64"
+          },
+          {
+            "name": "odds_a",
+            "type": "u64"
+          },
+          {
+            "name": "odds_b",
+            "type": "u64"
+          },
+          {
+            "name": "total_bettors",
+            "type": "u64"
+          },
+          {
+            "name": "time_remaining",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "platform_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "maker_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "total_volume",
+            "type": "u64"
+          },
+          {
+            "name": "total_fees_collected",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -505,6 +931,18 @@
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "placed_at",
+            "type": "i64"
+          },
+          {
+            "name": "claimed_at",
+            "type": "i64"
+          },
+          {
+            "name": "original_amount",
+            "type": "u64"
           }
         ]
       }

@@ -6,7 +6,29 @@ declare_id!("22hXmGnod6ytgUPuNaj3UCYj9aamhgVa4fjDed16ob1R");
 
 #[program]
 pub mod betting_dapp {
+
     use super::*;
+
+    // Initialize platform configuration
+    pub fn initialize_platform(
+        ctx: Context<InitializePlatform>,
+        platform_fee_bps: u16,
+        maker_fee_bps: u16,
+    ) -> Result<()> {
+        let platform_config = &mut ctx.accounts.platform_config;
+
+        require!(platform_fee_bps <= 1000, BettingError::FeeTooHigh); // max 10% only
+        require!(maker_fee_bps <= 1000, BettingError::FeeTooHigh); // max 10% only
+
+        platform_config.owner = *ctx.accounts.owner.key;
+        platform_config.platform_fee_bps = platform_fee_bps;
+        platform_config.maker_fee_bps = maker_fee_bps;
+        platform_config.total_volume = 0;
+        platform_config.total_fees_collected = 0;
+        platform_config.bump = ctx.bumps.platform_config;
+
+        Ok(())
+    }
 
     // Create a new betting market
     pub fn create_bet(
@@ -16,8 +38,27 @@ pub mod betting_dapp {
         option_a: String,
         option_b: String,
         end_time: i64,
+        min_bet_amount: u64,
+        max_bet_amount: u64,
+        category: String,
     ) -> Result<()> {
         let bet = &mut ctx.accounts.bet;
+        let clock = Clock::get()?;
+
+        require!(
+            end_time > clock.unix_timestamp,
+            BettingError::InvalidEndTime
+        );
+        require!(min_bet_amount > 0, BettingError::InvalidAmount);
+        require!(
+            max_bet_amount >= min_bet_amount,
+            BettingError::InvalidAmount
+        );
+        require!(
+            category.len() <= 50 && category.len() > 0,
+            BettingError::InvalidCategory
+        );
+
         bet.creator = *ctx.accounts.creator.key;
         bet.bet_id = bet_id;
         bet.description = description;
@@ -29,6 +70,14 @@ pub mod betting_dapp {
         bet.is_resolved = false;
         bet.winning_option = 0; // 0 = unresolved, 1 = option A, 2 = option B
         bet.bump = ctx.bumps.bet;
+        bet.min_bet_amount = min_bet_amount;
+        bet.max_bet_amount = max_bet_amount;
+        bet.category = category;
+        bet.created_at = clock.unix_timestamp;
+        bet.resolved_at = 0; // Not resolved yet
+        bet.maker_fee_collected = 0;
+        bet.total_bettors = 0;
+        bet.platform_fee_collected = 0;
 
         Ok(())
     }
@@ -42,6 +91,7 @@ pub mod betting_dapp {
     ) -> Result<()> {
         let bet = &mut ctx.accounts.bet;
         let user_bet = &mut ctx.accounts.user_bet;
+        let platform_config = &ctx.accounts.platform_config;
 
         // Check if betting is still open
         let clock = Clock::get()?;
@@ -52,13 +102,24 @@ pub mod betting_dapp {
         require!(!bet.is_resolved, BettingError::BetAlreadyResolved);
         require!(option == 1 || option == 2, BettingError::InvalidOption);
         require!(amount > 0, BettingError::InvalidAmount);
+        require!(amount >= bet.min_bet_amount, BettingError::BetTooLow);
+        require!(amount <= bet.max_bet_amount, BettingError::BetTooHigh);
+
+        let platform_fee = (amount * platform_config.platform_fee_bps as u64) / 10000;
+        let maker_fee = (amount * platform_config.maker_fee_bps as u64) / 10000;
+
+        let net_amount = amount - platform_fee - maker_fee;
 
         // Update bet totals
         if option == 1 {
-            bet.total_amount_a += amount;
+            bet.total_amount_a += net_amount;
         } else {
-            bet.total_amount_b += amount;
+            bet.total_amount_b += net_amount;
         }
+
+        bet.maker_fee_collected += maker_fee;
+        bet.platform_fee_collected += platform_fee;
+        bet.total_bettors += 1;
 
         // Transfer SOL from user to bet account
         let transfer_instruction = system_program::Transfer {
@@ -80,6 +141,8 @@ pub mod betting_dapp {
         user_bet.amount = amount;
         user_bet.is_claimed = false;
         user_bet.bump = ctx.bumps.user_bet;
+        user_bet.placed_at = clock.unix_timestamp;
+        user_bet.original_amount = amount;
 
         Ok(())
     }
@@ -89,6 +152,7 @@ pub mod betting_dapp {
         ctx: Context<ResolveBet>,
         _bet_id: String,
         winning_option: u8,
+        result_details: String,
     ) -> Result<()> {
         let bet = &mut ctx.accounts.bet;
 
@@ -111,7 +175,58 @@ pub mod betting_dapp {
 
         bet.is_resolved = true;
         bet.winning_option = winning_option;
+        bet.resolved_at = clock.unix_timestamp;
+        bet.result_details = result_details;
 
+        Ok(())
+    }
+
+    // Claim maker fees (only bet creator can do this)
+    pub fn claim_maker_fees(ctx: Context<ClaimMakerFees>, _bet_id: String) -> Result<()> {
+        let bet = &mut ctx.accounts.bet;
+
+        require!(bet.is_resolved, BettingError::BetNotResolved);
+        require!(
+            bet.creator == *ctx.accounts.creator.key,
+            BettingError::UnauthorizedResolver
+        );
+        require!(bet.maker_fee_collected > 0, BettingError::NoFeesToClaim);
+
+        let fees_to_claim = bet.maker_fee_collected;
+
+        **bet.to_account_info().try_borrow_mut_lamports()? -= fees_to_claim;
+        **ctx
+            .accounts
+            .creator
+            .to_account_info()
+            .try_borrow_mut_lamports()? += fees_to_claim;
+
+        bet.maker_fee_collected = 0;
+        Ok(())
+    }
+
+    // claim platform fees (only platform owner can do this)
+    pub fn claim_platform_fees(ctx: Context<ClaimPlatformFees>, _bet_id: String) -> Result<()> {
+        let bet = &mut ctx.accounts.bet;
+        let platform_config = &mut ctx.accounts.platform_config;
+
+        require!(bet.is_resolved, BettingError::BetNotResolved);
+        require!(
+            platform_config.owner == *ctx.accounts.platform_owner.key,
+            BettingError::UnauthorizedResolver
+        );
+        require!(bet.maker_fee_collected > 0, BettingError::NoFeesToClaim);
+
+        let fees_to_claim = bet.platform_fee_collected;
+
+        **bet.to_account_info().try_borrow_mut_lamports()? -= fees_to_claim;
+        **ctx
+            .accounts
+            .platform_owner
+            .to_account_info()
+            .try_borrow_mut_lamports()? += fees_to_claim;
+
+        bet.platform_fee_collected = 0;
         Ok(())
     }
 
@@ -133,6 +248,8 @@ pub mod betting_dapp {
             bet.total_amount_b
         };
 
+        require!(total_winning_pool > 0, BettingError::NoWinnersFound);
+
         let total_pool = bet.total_amount_a + bet.total_amount_b;
 
         // Calculate winnings: (user_bet_amount / total_winning_pool) * total_pool
@@ -147,6 +264,7 @@ pub mod betting_dapp {
             .try_borrow_mut_lamports()? += winnings as u64;
 
         user_bet.is_claimed = true;
+        user_bet.claimed_at = Clock::get()?.unix_timestamp;
 
         Ok(())
     }
@@ -168,6 +286,46 @@ pub mod betting_dapp {
         // Account will be closed automatically due to close constraint
         Ok(())
     }
+
+    pub fn get_bet_stats(ctx: Context<GetBetStats>, _bet_id: String) -> Result<BetStats> {
+        let bet = &ctx.accounts.bet;
+
+        let total_pool = bet.total_amount_a + bet.total_amount_b;
+        let odds_a = if bet.total_amount_a > 0 {
+            total_pool / bet.total_amount_a
+        } else {
+            0
+        };
+        let odds_b = if bet.total_amount_b > 0 {
+            total_pool / bet.total_amount_b
+        } else {
+            0
+        };
+
+        Ok(BetStats {
+            total_pool,
+            odds_a,
+            odds_b,
+            total_bettors: bet.total_bettors,
+            time_remaining: bet.end_time - Clock::get()?.unix_timestamp,
+        })
+    }
+}
+
+//
+#[derive(Accounts)]
+pub struct InitializePlatform<'info> {
+    #[account(
+        init,
+        seeds = [b"platform_config"],
+        bump,
+        space = 8+ PlatformConfig::INIT_SPACE,
+        payer = owner,
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 // Account validation structs
@@ -187,6 +345,7 @@ pub struct CreateBet<'info> {
     pub system_program: Program<'info, System>,
 }
 
+//
 #[derive(Accounts)]
 #[instruction(bet_id: String)]
 pub struct PlaceBet<'info> {
@@ -206,9 +365,15 @@ pub struct PlaceBet<'info> {
     pub user_bet: Account<'info, UserBetState>,
     #[account(mut)]
     pub user: Signer<'info>,
+    #[account(
+        seeds = [b"platform_config"],
+        bump,
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
     pub system_program: Program<'info, System>,
 }
 
+//
 #[derive(Accounts)]
 #[instruction(bet_id: String)]
 pub struct ResolveBet<'info> {
@@ -223,6 +388,7 @@ pub struct ResolveBet<'info> {
     pub system_program: Program<'info, System>,
 }
 
+//
 #[derive(Accounts)]
 #[instruction(bet_id: String)]
 pub struct ClaimWinnings<'info> {
@@ -243,6 +409,42 @@ pub struct ClaimWinnings<'info> {
     pub system_program: Program<'info, System>,
 }
 
+//
+#[derive(Accounts)]
+#[instruction(bet_id: String)]
+pub struct ClaimMakerFees<'info> {
+    #[account(
+        mut,
+        seeds = [b"bet", bet_id.as_bytes()],
+        bump,
+    )]
+    pub bet: Account<'info, BetState>,
+    #[account(mut)]
+    pub creator: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+// ClaimPlatformFees
+#[derive(Accounts)]
+#[instruction(bet_id: String)]
+pub struct ClaimPlatformFees<'info> {
+    #[account(
+        mut,
+        seeds = [b"bet", bet_id.as_bytes()],
+        bump,
+    )]
+    pub bet: Account<'info, BetState>,
+    #[account(
+        seeds = [b"platform_config"],
+        bump,
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+    #[account(mut)]
+    pub platform_owner: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+//
 #[derive(Accounts)]
 #[instruction(bet_id: String)]
 pub struct CancelBet<'info> {
@@ -258,7 +460,30 @@ pub struct CancelBet<'info> {
     pub system_program: Program<'info, System>,
 }
 
-// Data structures
+//
+#[derive(Accounts)]
+#[instruction(bet_id: String)]
+pub struct GetBetStats<'info> {
+    #[account(
+        seeds = [b"bet", bet_id.as_bytes()],
+        bump,
+    )]
+    pub bet: Account<'info, BetState>,
+}
+
+// Platform configuration account
+#[account]
+#[derive(InitSpace)]
+pub struct PlatformConfig {
+    pub owner: Pubkey,
+    pub platform_fee_bps: u16, // Platform fee rate in basis points (100 = 1%)
+    pub maker_fee_bps: u16,    // Maker fee in basis points (100 = 1%)
+    pub total_volume: u64,
+    pub total_fees_collected: u64,
+    pub bump: u8,
+}
+
+// Bet State Account
 #[account]
 #[derive(InitSpace)]
 pub struct BetState {
@@ -277,8 +502,21 @@ pub struct BetState {
     pub is_resolved: bool,
     pub winning_option: u8, // 0 = unresolved, 1 = option A, 2 = option B
     pub bump: u8,
+
+    pub min_bet_amount: u64, // Minimum bet amount
+    pub max_bet_amount: u64, // Maximum bet amount
+    #[max_len(50)]
+    pub category: String,
+    pub created_at: i64, // Timestamp when the bet was created
+    pub resolved_at: i64,
+    pub total_bettors: u64,
+    pub maker_fee_collected: u64,
+    pub platform_fee_collected: u64,
+    #[max_len(300)]
+    pub result_details: String,
 }
 
+// User Bet State
 #[account]
 #[derive(InitSpace)]
 pub struct UserBetState {
@@ -289,6 +527,19 @@ pub struct UserBetState {
     pub amount: u64,
     pub is_claimed: bool,
     pub bump: u8,
+    pub placed_at: i64,
+    pub claimed_at: i64,
+    pub original_amount: u64,
+}
+
+//  BetStats struct to hold bet statistics
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct BetStats {
+    pub total_pool: u64,
+    pub odds_a: u64,
+    pub odds_b: u64,
+    pub total_bettors: u64,
+    pub time_remaining: i64,
 }
 
 // Custom errors
@@ -314,4 +565,21 @@ pub enum BettingError {
     NotWinner,
     #[msg("Bets have already been placed")]
     BetsAlreadyPlaced,
+
+    #[msg("Fee rate too high (max 10%)")]
+    FeeTooHigh,
+    #[msg("Bet amount too low")]
+    BetTooLow,
+    #[msg("Bet amount too high")]
+    BetTooHigh,
+    #[msg("Invlaid end time")]
+    InvalidEndTime,
+    #[msg("Invalid category")]
+    InvalidCategory,
+    #[msg("No fees to claim")]
+    NoFeesToClaim,
+    #[msg("Unauthorized Platform Owner")]
+    UnauthorizedPlatformOwner,
+    #[msg("No Winners found")]
+    NoWinnersFound,
 }

@@ -64,6 +64,133 @@ export type BettingDapp = {
       ]
     },
     {
+      "name": "claimMakerFees",
+      "discriminator": [
+        102,
+        69,
+        89,
+        31,
+        119,
+        199,
+        231,
+        77
+      ],
+      "accounts": [
+        {
+          "name": "bet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "betId"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "betId",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "claimPlatformFees",
+      "discriminator": [
+        159,
+        129,
+        37,
+        35,
+        170,
+        99,
+        163,
+        16
+      ],
+      "accounts": [
+        {
+          "name": "bet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "betId"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platformConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "platformOwner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "betId",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "claimWinnings",
       "discriminator": [
         161,
@@ -205,6 +332,125 @@ export type BettingDapp = {
         {
           "name": "endTime",
           "type": "i64"
+        },
+        {
+          "name": "minBetAmount",
+          "type": "u64"
+        },
+        {
+          "name": "maxBetAmount",
+          "type": "u64"
+        },
+        {
+          "name": "category",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "getBetStats",
+      "discriminator": [
+        4,
+        186,
+        166,
+        115,
+        85,
+        76,
+        95,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "bet",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "betId"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "betId",
+          "type": "string"
+        }
+      ],
+      "returns": {
+        "defined": {
+          "name": "betStats"
+        }
+      }
+    },
+    {
+      "name": "initializePlatform",
+      "discriminator": [
+        119,
+        201,
+        101,
+        45,
+        75,
+        122,
+        89,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "platformConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "platformFeeBps",
+          "type": "u16"
+        },
+        {
+          "name": "makerFeeBps",
+          "type": "u16"
         }
       ]
     },
@@ -274,6 +520,33 @@ export type BettingDapp = {
           "name": "user",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "platformConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "systemProgram",
@@ -346,6 +619,10 @@ export type BettingDapp = {
         {
           "name": "winningOption",
           "type": "u8"
+        },
+        {
+          "name": "resultDetails",
+          "type": "string"
         }
       ]
     }
@@ -362,6 +639,19 @@ export type BettingDapp = {
         157,
         101,
         185
+      ]
+    },
+    {
+      "name": "platformConfig",
+      "discriminator": [
+        160,
+        78,
+        128,
+        0,
+        248,
+        83,
+        230,
+        160
       ]
     },
     {
@@ -428,6 +718,46 @@ export type BettingDapp = {
       "code": 6009,
       "name": "betsAlreadyPlaced",
       "msg": "Bets have already been placed"
+    },
+    {
+      "code": 6010,
+      "name": "feeTooHigh",
+      "msg": "Fee rate too high (max 10%)"
+    },
+    {
+      "code": 6011,
+      "name": "betTooLow",
+      "msg": "Bet amount too low"
+    },
+    {
+      "code": 6012,
+      "name": "betTooHigh",
+      "msg": "Bet amount too high"
+    },
+    {
+      "code": 6013,
+      "name": "invalidEndTime",
+      "msg": "Invlaid end time"
+    },
+    {
+      "code": 6014,
+      "name": "invalidCategory",
+      "msg": "Invalid category"
+    },
+    {
+      "code": 6015,
+      "name": "noFeesToClaim",
+      "msg": "No fees to claim"
+    },
+    {
+      "code": 6016,
+      "name": "unauthorizedPlatformOwner",
+      "msg": "Unauthorized Platform Owner"
+    },
+    {
+      "code": 6017,
+      "name": "noWinnersFound",
+      "msg": "No Winners found"
     }
   ],
   "types": [
@@ -479,6 +809,102 @@ export type BettingDapp = {
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "minBetAmount",
+            "type": "u64"
+          },
+          {
+            "name": "maxBetAmount",
+            "type": "u64"
+          },
+          {
+            "name": "category",
+            "type": "string"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "resolvedAt",
+            "type": "i64"
+          },
+          {
+            "name": "totalBettors",
+            "type": "u64"
+          },
+          {
+            "name": "makerFeeCollected",
+            "type": "u64"
+          },
+          {
+            "name": "platformFeeCollected",
+            "type": "u64"
+          },
+          {
+            "name": "resultDetails",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "betStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "totalPool",
+            "type": "u64"
+          },
+          {
+            "name": "oddsA",
+            "type": "u64"
+          },
+          {
+            "name": "oddsB",
+            "type": "u64"
+          },
+          {
+            "name": "totalBettors",
+            "type": "u64"
+          },
+          {
+            "name": "timeRemaining",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "platformConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "platformFeeBps",
+            "type": "u16"
+          },
+          {
+            "name": "makerFeeBps",
+            "type": "u16"
+          },
+          {
+            "name": "totalVolume",
+            "type": "u64"
+          },
+          {
+            "name": "totalFeesCollected",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -511,6 +937,18 @@ export type BettingDapp = {
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "placedAt",
+            "type": "i64"
+          },
+          {
+            "name": "claimedAt",
+            "type": "i64"
+          },
+          {
+            "name": "originalAmount",
+            "type": "u64"
           }
         ]
       }
