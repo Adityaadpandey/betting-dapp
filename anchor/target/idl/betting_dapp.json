@@ -9,6 +9,9 @@
   "instructions": [
     {
       "name": "cancel_bet",
+      "docs": [
+        "Cancel bet (only creator can do this, only if no bets placed)"
+      ],
       "discriminator": [
         17,
         248,
@@ -59,6 +62,9 @@
     },
     {
       "name": "claim_maker_fees",
+      "docs": [
+        "Claim maker fees (only bet creator can do this)"
+      ],
       "discriminator": [
         102,
         69,
@@ -108,84 +114,10 @@
       ]
     },
     {
-      "name": "claim_platform_fees",
-      "discriminator": [
-        159,
-        129,
-        37,
-        35,
-        170,
-        99,
-        163,
-        16
-      ],
-      "accounts": [
-        {
-          "name": "bet",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  101,
-                  116
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "bet_id"
-              }
-            ]
-          }
-        },
-        {
-          "name": "platform_config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  108,
-                  97,
-                  116,
-                  102,
-                  111,
-                  114,
-                  109,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "platform_owner",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "_bet_id",
-          "type": "string"
-        }
-      ]
-    },
-    {
       "name": "claim_winnings",
+      "docs": [
+        "Claim winnings for a winning bet"
+      ],
       "discriminator": [
         161,
         215,
@@ -265,6 +197,9 @@
     },
     {
       "name": "create_bet",
+      "docs": [
+        "Create a new betting market"
+      ],
       "discriminator": [
         197,
         42,
@@ -343,6 +278,9 @@
     },
     {
       "name": "get_bet_stats",
+      "docs": [
+        "Get bet statistics"
+      ],
       "discriminator": [
         4,
         186,
@@ -387,69 +325,10 @@
       }
     },
     {
-      "name": "initialize_platform",
-      "discriminator": [
-        119,
-        201,
-        101,
-        45,
-        75,
-        122,
-        89,
-        3
-      ],
-      "accounts": [
-        {
-          "name": "platform_config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  108,
-                  97,
-                  116,
-                  102,
-                  111,
-                  114,
-                  109,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "owner",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "platform_fee_bps",
-          "type": "u16"
-        },
-        {
-          "name": "maker_fee_bps",
-          "type": "u16"
-        }
-      ]
-    },
-    {
       "name": "place_bet",
+      "docs": [
+        "Place a bet on an option"
+      ],
       "discriminator": [
         222,
         62,
@@ -516,33 +395,6 @@
           "signer": true
         },
         {
-          "name": "platform_config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  108,
-                  97,
-                  116,
-                  102,
-                  111,
-                  114,
-                  109,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
@@ -564,6 +416,9 @@
     },
     {
       "name": "resolve_bet",
+      "docs": [
+        "Resolve a bet (only creator can do this)"
+      ],
       "discriminator": [
         137,
         132,
@@ -633,19 +488,6 @@
         157,
         101,
         185
-      ]
-    },
-    {
-      "name": "PlatformConfig",
-      "discriminator": [
-        160,
-        78,
-        128,
-        0,
-        248,
-        83,
-        230,
-        160
       ]
     },
     {
@@ -731,7 +573,7 @@
     {
       "code": 6013,
       "name": "InvalidEndTime",
-      "msg": "Invlaid end time"
+      "msg": "Invalid end time"
     },
     {
       "code": 6014,
@@ -746,12 +588,22 @@
     {
       "code": 6016,
       "name": "UnauthorizedPlatformOwner",
-      "msg": "Unauthorized Platform Owner"
+      "msg": "Unauthorized platform owner"
     },
     {
       "code": 6017,
       "name": "NoWinnersFound",
-      "msg": "No Winners found"
+      "msg": "No winners found"
+    },
+    {
+      "code": 6018,
+      "name": "InvalidDescription",
+      "msg": "Invalid description"
+    },
+    {
+      "code": 6019,
+      "name": "InvalidResultDetails",
+      "msg": "Invalid result details"
     }
   ],
   "types": [
@@ -833,10 +685,6 @@
             "type": "u64"
           },
           {
-            "name": "platform_fee_collected",
-            "type": "u64"
-          },
-          {
             "name": "result_details",
             "type": "string"
           }
@@ -867,38 +715,6 @@
           {
             "name": "time_remaining",
             "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PlatformConfig",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "owner",
-            "type": "pubkey"
-          },
-          {
-            "name": "platform_fee_bps",
-            "type": "u16"
-          },
-          {
-            "name": "maker_fee_bps",
-            "type": "u16"
-          },
-          {
-            "name": "total_volume",
-            "type": "u64"
-          },
-          {
-            "name": "total_fees_collected",
-            "type": "u64"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }

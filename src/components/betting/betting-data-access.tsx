@@ -34,24 +34,69 @@ export function useBettingProgram() {
     queryFn: () => connection.getParsedAccountInfo(programId),
   })
 
+  const getPlatformConfig = useQuery({
+    queryKey: ['betting', 'platform-config', { cluster }],
+    queryFn: async () => {
+      const [platformConfigPda] = PublicKey.findProgramAddressSync([Buffer.from('platform_config')], programId)
+      try {
+        return await program.account.platformConfig.fetch(platformConfigPda)
+      } catch (error) {
+        return null
+      }
+    },
+  })
+
+  const initializePlatform = useMutation({
+    mutationKey: ['betting', 'initialize-platform', { cluster }],
+    mutationFn: async ({ platformFeeBps, makerFeeBps }: { platformFeeBps: number; makerFeeBps: number }) => {
+      return program.methods
+        .initializePlatform(platformFeeBps, makerFeeBps)
+        .accounts({
+          owner: provider.wallet.publicKey,
+        })
+        .rpc()
+    },
+    onSuccess: async (signature) => {
+      transactionToast(signature)
+      await getPlatformConfig.refetch()
+    },
+    onError: (error) => {
+      toast.error(`Failed to initialize platform: ${error.message}`)
+    },
+  })
+
   const createBet = useMutation({
     mutationKey: ['betting', 'create-bet', { cluster }],
     mutationFn: async ({
+      betId,
       description,
       optionA,
       optionB,
       endTime,
+      minBetAmount,
+      maxBetAmount,
+      category,
     }: {
+      betId: string
       description: string
       optionA: string
       optionB: string
       endTime: number
+      minBetAmount: number
+      maxBetAmount: number
+      category: string
     }) => {
-      const betId = Buffer.from(description).toString('base64').slice(0, 32) // Generate a unique bet ID from description
-      const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), Buffer.from(betId)], programId)
-
       return program.methods
-        .createBet(betId, description, optionA, optionB, new BN(endTime))
+        .createBet(
+          betId,
+          description,
+          optionA,
+          optionB,
+          new BN(endTime),
+          new BN(minBetAmount),
+          new BN(maxBetAmount),
+          category,
+        )
         .accounts({
           creator: provider.wallet.publicKey,
         })
@@ -69,13 +114,6 @@ export function useBettingProgram() {
   const placeBet = useMutation({
     mutationKey: ['betting', 'place-bet', { cluster }],
     mutationFn: async ({ betId, option, amount }: { betId: string; option: number; amount: number }) => {
-      const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), Buffer.from(betId)], programId)
-
-      const [userBetPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('user_bet'), Buffer.from(betId), provider.wallet.publicKey.toBuffer()],
-        programId,
-      )
-
       return program.methods
         .placeBet(betId, option, new BN(amount))
         .accounts({
@@ -95,11 +133,17 @@ export function useBettingProgram() {
 
   const resolveBet = useMutation({
     mutationKey: ['betting', 'resolve-bet', { cluster }],
-    mutationFn: async ({ betId, winningOption }: { betId: string; winningOption: number }) => {
-      const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), Buffer.from(betId)], programId)
-
+    mutationFn: async ({
+      betId,
+      winningOption,
+      resultDetails,
+    }: {
+      betId: string
+      winningOption: number
+      resultDetails: string
+    }) => {
       return program.methods
-        .resolveBet(betId, winningOption)
+        .resolveBet(betId, winningOption, resultDetails)
         .accounts({
           creator: provider.wallet.publicKey,
         })
@@ -117,13 +161,6 @@ export function useBettingProgram() {
   const claimWinnings = useMutation({
     mutationKey: ['betting', 'claim-winnings', { cluster }],
     mutationFn: async ({ betId }: { betId: string }) => {
-      const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), Buffer.from(betId)], programId)
-
-      const [userBetPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('user_bet'), Buffer.from(betId), provider.wallet.publicKey.toBuffer()],
-        programId,
-      )
-
       return program.methods
         .claimWinnings(betId)
         .accounts({
@@ -141,11 +178,47 @@ export function useBettingProgram() {
     },
   })
 
+  const claimMakerFees = useMutation({
+    mutationKey: ['betting', 'claim-maker-fees', { cluster }],
+    mutationFn: async ({ betId }: { betId: string }) => {
+      return program.methods
+        .claimMakerFees(betId)
+        .accounts({
+          creator: provider.wallet.publicKey,
+        })
+        .rpc()
+    },
+    onSuccess: async (signature) => {
+      transactionToast(signature)
+      await allBets.refetch()
+    },
+    onError: (error) => {
+      toast.error(`Failed to claim maker fees: ${error.message}`)
+    },
+  })
+
+  const claimPlatformFees = useMutation({
+    mutationKey: ['betting', 'claim-platform-fees', { cluster }],
+    mutationFn: async ({ betId }: { betId: string }) => {
+      return program.methods
+        .claimPlatformFees(betId)
+        .accounts({
+          platformOwner: provider.wallet.publicKey,
+        })
+        .rpc()
+    },
+    onSuccess: async (signature) => {
+      transactionToast(signature)
+      await allBets.refetch()
+    },
+    onError: (error) => {
+      toast.error(`Failed to claim platform fees: ${error.message}`)
+    },
+  })
+
   const cancelBet = useMutation({
     mutationKey: ['betting', 'cancel-bet', { cluster }],
     mutationFn: async ({ betId }: { betId: string }) => {
-      const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), Buffer.from(betId)], programId)
-
       return program.methods
         .cancelBet(betId)
         .accounts({
@@ -162,17 +235,35 @@ export function useBettingProgram() {
     },
   })
 
+  const getBetStats = useMutation({
+    mutationKey: ['betting', 'get-bet-stats', { cluster }],
+    mutationFn: async ({ betId }: { betId: string }) => {
+      return program.methods.getBetStats(betId).accounts({}).rpc()
+    },
+    onSuccess: async (signature) => {
+      transactionToast(signature)
+    },
+    onError: (error) => {
+      toast.error(`Failed to get bet stats: ${error.message}`)
+    },
+  })
+
   return {
     program,
     programId,
     allBets,
     getUserBets,
     getProgramAccount,
+    getPlatformConfig,
+    initializePlatform,
     createBet,
     placeBet,
     resolveBet,
     claimWinnings,
+    claimMakerFees,
+    claimPlatformFees,
     cancelBet,
+    getBetStats,
   }
 }
 
@@ -196,6 +287,11 @@ export function useBettingProgramAccount({ betId }: { betId: string }) {
     [betId, programId, provider.wallet.publicKey],
   )
 
+  const [platformConfigPda] = useMemo(
+    () => PublicKey.findProgramAddressSync([Buffer.from('platform_config')], programId),
+    [programId],
+  )
+
   const betQuery = useQuery({
     queryKey: ['betting', 'fetch-bet', { cluster, betId }],
     queryFn: () => program.account.betState.fetch(betPda),
@@ -208,6 +304,17 @@ export function useBettingProgramAccount({ betId }: { betId: string }) {
         return await program.account.userBetState.fetch(userBetPda)
       } catch (error) {
         // Return null if user bet doesn't exist
+        return null
+      }
+    },
+  })
+
+  const platformConfigQuery = useQuery({
+    queryKey: ['betting', 'fetch-platform-config', { cluster }],
+    queryFn: async () => {
+      try {
+        return await program.account.platformConfig.fetch(platformConfigPda)
+      } catch (error) {
         return null
       }
     },
@@ -237,9 +344,9 @@ export function useBettingProgramAccount({ betId }: { betId: string }) {
 
   const resolveBetMutation = useMutation({
     mutationKey: ['betting', 'resolve-bet', { cluster, betId }],
-    mutationFn: async ({ winningOption }: { winningOption: number }) => {
+    mutationFn: async ({ winningOption, resultDetails }: { winningOption: number; resultDetails: string }) => {
       return program.methods
-        .resolveBet(betId, winningOption)
+        .resolveBet(betId, winningOption, resultDetails)
         .accounts({
           creator: provider.wallet.publicKey,
         })
@@ -277,6 +384,46 @@ export function useBettingProgramAccount({ betId }: { betId: string }) {
     },
   })
 
+  const claimMakerFeesMutation = useMutation({
+    mutationKey: ['betting', 'claim-maker-fees', { cluster, betId }],
+    mutationFn: async () => {
+      return program.methods
+        .claimMakerFees(betId)
+        .accounts({
+          creator: provider.wallet.publicKey,
+        })
+        .rpc()
+    },
+    onSuccess: async (tx) => {
+      transactionToast(tx)
+      await betQuery.refetch()
+      await allBets.refetch()
+    },
+    onError: (error) => {
+      toast.error(`Failed to claim maker fees: ${error.message}`)
+    },
+  })
+
+  const claimPlatformFeesMutation = useMutation({
+    mutationKey: ['betting', 'claim-platform-fees', { cluster, betId }],
+    mutationFn: async () => {
+      return program.methods
+        .claimPlatformFees(betId)
+        .accounts({
+          platformOwner: provider.wallet.publicKey,
+        })
+        .rpc()
+    },
+    onSuccess: async (tx) => {
+      transactionToast(tx)
+      await betQuery.refetch()
+      await allBets.refetch()
+    },
+    onError: (error) => {
+      toast.error(`Failed to claim platform fees: ${error.message}`)
+    },
+  })
+
   const cancelBetMutation = useMutation({
     mutationKey: ['betting', 'cancel-bet', { cluster, betId }],
     mutationFn: async () => {
@@ -296,14 +443,32 @@ export function useBettingProgramAccount({ betId }: { betId: string }) {
     },
   })
 
+  const getBetStatsMutation = useMutation({
+    mutationKey: ['betting', 'get-bet-stats', { cluster, betId }],
+    mutationFn: async () => {
+      return program.methods.getBetStats(betId).accounts({}).rpc()
+    },
+    onSuccess: async (tx) => {
+      transactionToast(tx)
+    },
+    onError: (error) => {
+      toast.error(`Failed to get bet stats: ${error.message}`)
+    },
+  })
+
   return {
     betPda,
     userBetPda,
+    platformConfigPda,
     betQuery,
     userBetQuery,
+    platformConfigQuery,
     placeBetMutation,
     resolveBetMutation,
     claimWinningsMutation,
+    claimMakerFeesMutation,
+    claimPlatformFeesMutation,
     cancelBetMutation,
+    getBetStatsMutation,
   }
 }
