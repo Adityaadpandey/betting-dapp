@@ -3,6 +3,7 @@ import { AlertCircle } from 'lucide-react'
 import { ReactNode } from 'react'
 
 export function AppAlert({ action, children }: { action: ReactNode; children: ReactNode }) {
+  console.log('AppAlert is deprecated, use Alert instead')
   return (
     <Alert variant="destructive">
       <AlertCircle className="h-4 w-4" />

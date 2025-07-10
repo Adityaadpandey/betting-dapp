@@ -13,12 +13,23 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { useConnection } from '@solana/wallet-adapter-react'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { PublicKey } from '@solana/web3.js'
+import { useQuery } from '@tanstack/react-query'
 import { Circle, Dice6, Globe, Home, Settings, TrendingUp, Trophy, Wallet, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCluster } from './cluster/cluster-data-access'
 import { ClusterUiSelect } from './cluster/cluster-ui'
+
+export function useGetBalance({ address }: { address: PublicKey }) {
+  const { connection } = useConnection()
+
+  return useQuery({
+    queryKey: ['get-balance', { endpoint: connection.rpcEndpoint, address }],
+    queryFn: () => connection.getBalance(address),
+  })
+}
 
 // Enhanced icon mapping for routes
 const getRouteIcon = (path: string, label: string) => {
@@ -32,6 +43,13 @@ const getRouteIcon = (path: string, label: string) => {
 }
 
 export function AppSidebar({ links = [] }: { links: { label: string; path: string }[] }) {
+  const { publicKey } = useWallet()
+  const { data: balanceData } = useGetBalance({
+    address: publicKey || new PublicKey('11111111111111111111111111111111'),
+  }) // Fetch balance using publicKey
+
+  // Ensure publicKey is defined before using it
+
   const pathname = usePathname()
   const { cluster } = useCluster()
   const { connection } = useConnection()
@@ -163,6 +181,22 @@ export function AppSidebar({ links = [] }: { links: { label: string; path: strin
                 </div>
                 <div className="flex-1 min-w-0">
                   <ClusterUiSelect />
+                </div>
+              </div>
+              {/* Balance Display */}
+              <div
+                className="flex items-center gap-3 p-3 rounded-lg bg-gradient
+-to-r from-muted/30 to-muted/50 border border-border/30"
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-green-500/20 text-green-500">
+                  <Zap className="size-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-mono text-primary">
+                      {publicKey ? (balanceData ? (balanceData / 1e9).toFixed(4) : '0.0000') : '0.0000'} SOL
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
