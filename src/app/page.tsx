@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useBettingProgram } from '@/components/betting/betting-data-access'
-import { BettingList } from '@/components/betting/betting-ui'
-import { WalletButton } from '@/components/solana/solana-provider'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { BettingList } from "@/components/betting/BetPage";
+import { useBettingProgram } from "@/components/betting/betting-data-access";
+import { WalletButton } from "@/components/solana/solana-provider";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export default function BettingFeature() {
-  const { publicKey } = useWallet()
-  const { programId, getProgramAccount } = useBettingProgram()
+  const { publicKey } = useWallet();
+  const { programId, getProgramAccount } = useBettingProgram();
 
   return publicKey ? (
     <div>
@@ -21,5 +21,5 @@ export default function BettingFeature() {
         </div>
       </div>
     </div>
-  )
+  );
 }

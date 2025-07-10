@@ -9,19 +9,8 @@
   "instructions": [
     {
       "name": "cancel_bet",
-      "docs": [
-        "Cancel bet (only creator can do this, only if no bets placed)"
-      ],
-      "discriminator": [
-        17,
-        248,
-        130,
-        128,
-        153,
-        227,
-        231,
-        9
-      ],
+      "docs": ["Cancel bet (only creator can do this, only if no bets placed)"],
+      "discriminator": [17, 248, 130, 128, 153, 227, 231, 9],
       "accounts": [
         {
           "name": "bet",
@@ -30,11 +19,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  98,
-                  101,
-                  116
-                ]
+                "value": [98, 101, 116]
               },
               {
                 "kind": "arg",
@@ -62,19 +47,8 @@
     },
     {
       "name": "claim_maker_fees",
-      "docs": [
-        "Claim maker fees (only bet creator can do this)"
-      ],
-      "discriminator": [
-        102,
-        69,
-        89,
-        31,
-        119,
-        199,
-        231,
-        77
-      ],
+      "docs": ["Claim maker fees (only bet creator can do this)"],
+      "discriminator": [102, 69, 89, 31, 119, 199, 231, 77],
       "accounts": [
         {
           "name": "bet",
@@ -83,11 +57,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  98,
-                  101,
-                  116
-                ]
+                "value": [98, 101, 116]
               },
               {
                 "kind": "arg",
@@ -115,19 +85,8 @@
     },
     {
       "name": "claim_winnings",
-      "docs": [
-        "Claim winnings for a winning bet"
-      ],
-      "discriminator": [
-        161,
-        215,
-        24,
-        59,
-        14,
-        236,
-        242,
-        221
-      ],
+      "docs": ["Claim winnings for a winning bet"],
+      "discriminator": [161, 215, 24, 59, 14, 236, 242, 221],
       "accounts": [
         {
           "name": "bet",
@@ -136,11 +95,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  98,
-                  101,
-                  116
-                ]
+                "value": [98, 101, 116]
               },
               {
                 "kind": "arg",
@@ -156,16 +111,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  98,
-                  101,
-                  116
-                ]
+                "value": [117, 115, 101, 114, 95, 98, 101, 116]
               },
               {
                 "kind": "arg",
@@ -197,19 +143,8 @@
     },
     {
       "name": "create_bet",
-      "docs": [
-        "Create a new betting market"
-      ],
-      "discriminator": [
-        197,
-        42,
-        153,
-        2,
-        59,
-        63,
-        143,
-        246
-      ],
+      "docs": ["Create a new betting market"],
+      "discriminator": [197, 42, 153, 2, 59, 63, 143, 246],
       "accounts": [
         {
           "name": "bet",
@@ -218,11 +153,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  98,
-                  101,
-                  116
-                ]
+                "value": [98, 101, 116]
               },
               {
                 "kind": "arg",
@@ -278,19 +209,8 @@
     },
     {
       "name": "get_bet_stats",
-      "docs": [
-        "Get bet statistics"
-      ],
-      "discriminator": [
-        4,
-        186,
-        166,
-        115,
-        85,
-        76,
-        95,
-        190
-      ],
+      "docs": ["Get bet statistics"],
+      "discriminator": [4, 186, 166, 115, 85, 76, 95, 190],
       "accounts": [
         {
           "name": "bet",
@@ -298,11 +218,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  98,
-                  101,
-                  116
-                ]
+                "value": [98, 101, 116]
               },
               {
                 "kind": "arg",
@@ -326,19 +242,8 @@
     },
     {
       "name": "place_bet",
-      "docs": [
-        "Place a bet on an option"
-      ],
-      "discriminator": [
-        222,
-        62,
-        67,
-        220,
-        63,
-        166,
-        126,
-        33
-      ],
+      "docs": ["Place a bet on an option"],
+      "discriminator": [222, 62, 67, 220, 63, 166, 126, 33],
       "accounts": [
         {
           "name": "bet",
@@ -347,11 +252,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  98,
-                  101,
-                  116
-                ]
+                "value": [98, 101, 116]
               },
               {
                 "kind": "arg",
@@ -367,16 +268,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  98,
-                  101,
-                  116
-                ]
+                "value": [117, 115, 101, 114, 95, 98, 101, 116]
               },
               {
                 "kind": "arg",
@@ -416,19 +308,8 @@
     },
     {
       "name": "resolve_bet",
-      "docs": [
-        "Resolve a bet (only creator can do this)"
-      ],
-      "discriminator": [
-        137,
-        132,
-        33,
-        97,
-        48,
-        208,
-        30,
-        159
-      ],
+      "docs": ["Resolve a bet (only creator can do this)"],
+      "discriminator": [137, 132, 33, 97, 48, 208, 30, 159],
       "accounts": [
         {
           "name": "bet",
@@ -437,11 +318,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  98,
-                  101,
-                  116
-                ]
+                "value": [98, 101, 116]
               },
               {
                 "kind": "arg",
@@ -479,29 +356,11 @@
   "accounts": [
     {
       "name": "BetState",
-      "discriminator": [
-        143,
-        61,
-        238,
-        62,
-        232,
-        157,
-        101,
-        185
-      ]
+      "discriminator": [143, 61, 238, 62, 232, 157, 101, 185]
     },
     {
       "name": "UserBetState",
-      "discriminator": [
-        250,
-        140,
-        178,
-        232,
-        8,
-        193,
-        153,
-        157
-      ]
+      "discriminator": [250, 140, 178, 232, 8, 193, 153, 157]
     }
   ],
   "errors": [

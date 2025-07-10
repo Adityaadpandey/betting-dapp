@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useBettingProgram } from '@/components/betting/betting-data-access'
-import { BettingCard } from '@/components/betting/betting-ui'
+import { BettingCard } from "@/components/betting/BetCard";
+import { useBettingProgram } from "@/components/betting/betting-data-access";
 
-import { useAnchorProvider } from '@/components/solana/solana-provider'
+import { useAnchorProvider } from "@/components/solana/solana-provider";
 
 function MyBetsPage() {
-  const { allBets, getUserBets, getProgramAccount } = useBettingProgram()
-  const provider = useAnchorProvider()
+  const { allBets, getUserBets, getProgramAccount } = useBettingProgram();
+  const provider = useAnchorProvider();
 
   // Check if wallet is connected
   if (!provider.wallet.publicKey) {
@@ -17,7 +17,7 @@ function MyBetsPage() {
           <span>Please connect your wallet to view your bets.</span>
         </div>
       </div>
-    )
+    );
   }
 
   if (getProgramAccount.isLoading || getUserBets.isLoading) {
@@ -27,7 +27,7 @@ function MyBetsPage() {
           <span className="loading loading-spinner loading-lg"></span>
         </div>
       </div>
-    )
+    );
   }
 
   if (!getProgramAccount.data?.value) {
@@ -39,13 +39,13 @@ function MyBetsPage() {
           </span>
         </div>
       </div>
-    )
+    );
   }
 
   // Filter bets where user has placed money
-  const userBets = getUserBets.data || []
-  const userBetIds = userBets.map((bet) => bet.account.betId)
-  const myActiveBets = allBets.data?.filter((bet) => userBetIds.includes(bet.account.betId)) || []
+  const userBets = getUserBets.data || [];
+  const userBetIds = userBets.map((bet) => bet.account.betId);
+  const myActiveBets = allBets.data?.filter((bet) => userBetIds.includes(bet.account.betId)) || [];
 
   return (
     <div className="container mx-auto p-6">
@@ -92,7 +92,7 @@ function MyBetsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default MyBetsPage
+export default MyBetsPage;
