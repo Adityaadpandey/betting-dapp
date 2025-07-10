@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { AppSidebar } from '@/components/app-header'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import React from 'react'
-import { ThemeProvider } from './theme-provider'
-import { SidebarProvider, SidebarTrigger } from './ui/sidebar'
-import { Toaster } from './ui/sonner'
+import { AppSidebar } from "@/components/app-header";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import React from "react";
+import { ThemeProvider } from "./theme-provider";
+import { SidebarProvider, SidebarTrigger } from "./ui/sidebar";
+import { Toaster } from "./ui/sonner";
 
 export function AppLayout({
   children,
   links,
 }: {
-  children: React.ReactNode
-  links: { label: string; path: string }[]
+  children: React.ReactNode;
+  links: { label: string; path: string }[];
 }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
@@ -43,5 +43,5 @@ export function AppLayout({
       </div>
       <Toaster />
     </ThemeProvider>
-  )
+  );
 }

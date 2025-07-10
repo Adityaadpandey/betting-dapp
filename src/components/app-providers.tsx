@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { ThemeProvider } from '@/components/theme-provider'
-import { ReactQueryProvider } from './react-query-provider'
-import { ClusterProvider } from '@/components/cluster/cluster-data-access'
-import { SolanaProvider } from '@/components/solana/solana-provider'
-import React from 'react'
+import { ThemeProvider } from "@/components/theme-provider";
+import { ReactQueryProvider } from "./react-query-provider";
+import { ClusterProvider } from "@/components/cluster/cluster-data-access";
+import { SolanaProvider } from "@/components/solana/solana-provider";
+import React from "react";
 
 export function AppProviders({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -15,5 +15,5 @@ export function AppProviders({ children }: Readonly<{ children: React.ReactNode 
         </ClusterProvider>
       </ThemeProvider>
     </ReactQueryProvider>
-  )
+  );
 }

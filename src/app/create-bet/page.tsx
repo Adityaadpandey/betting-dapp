@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useBettingProgram } from '@/components/betting/betting-data-access'
-import { BettingCreate } from '@/components/betting/betting-ui'
-import { WalletButton } from '@/components/solana/solana-provider'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useBettingProgram } from "@/components/betting/betting-data-access";
+import { BettingCreate } from "@/components/betting/CreateBet";
+import { WalletButton } from "@/components/solana/solana-provider";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export default function BettingFeature() {
-  const { publicKey } = useWallet()
-  const { programId, getProgramAccount } = useBettingProgram()
+  const { publicKey } = useWallet();
+  const { programId, getProgramAccount } = useBettingProgram();
 
   if (!publicKey) {
     return (
@@ -18,10 +18,10 @@ export default function BettingFeature() {
         </p>
         <WalletButton className="w-full max-w-xs" />
       </div>
-    )
+    );
   }
 
-  const isProgramDeployed = !!getProgramAccount.data?.value
+  const isProgramDeployed = !!getProgramAccount.data?.value;
 
   return (
     <div className="flex justify-center items-center min-h-[60vh] px-4">
@@ -37,5 +37,5 @@ export default function BettingFeature() {
         </div>
       )}
     </div>
-  )
+  );
 }
