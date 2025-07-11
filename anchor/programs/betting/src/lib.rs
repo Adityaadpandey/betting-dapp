@@ -2,7 +2,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 
-declare_id!("22hXmGnod6ytgUPuNaj3UCYj9aamhgVa4fjDed16ob1R");
+declare_id!("69UzMhGARnmJuWtjbSwEe2t2co2LNc2YGEX1Jun8K9RK");
 
 // Constants
 const MAKER_FEE_RATE: u64 = 200; // 2% (in basis points)

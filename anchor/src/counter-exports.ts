@@ -25,7 +25,7 @@ export function getBettingProgramId(cluster: Cluster) {
     case "testnet":
       // This is the program ID for the BettingDapp program on devnet and testnet.
       // Update this with your actual deployed program ID on devnet/testnet
-      return new PublicKey("22hXmGnod6ytgUPuNaj3UCYj9aamhgVa4fjDed16ob1R");
+      return new PublicKey("69UzMhGARnmJuWtjbSwEe2t2co2LNc2YGEX1Jun8K9RK");
     case "mainnet-beta":
     default:
       return BETTING_PROGRAM_ID;
